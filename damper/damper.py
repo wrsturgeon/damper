@@ -103,6 +103,15 @@ def update_tensor(
     Float64[Array, "*batch"],
     Float64[Array, "*batch"],
 ]:
+    # If the dot product of this gradient and the last is negative,
+    # that means we're oscillating, and the more negative, the worse:
+    dot_prod = normalized_dot_product(
+        current_grad,
+        previous_grad,
+        stds,
+        epsilon,
+    )
+
     # Compute standard deviation error (but don't update it yet):
     # dLds = grad(standard_deviation_loss)(stds, current_grad, epsilon)
     dLds = standard_deviation_grad_approx(stds, current_grad, epsilon)
@@ -114,15 +123,6 @@ def update_tensor(
 
     # Update standard deviation (now that we've used the previous one for outliers):
     stds = stds - 0.2 * dLds
-
-    # If the dot product of this gradient and the last is negative,
-    # that means we're oscillating, and the more negative, the worse:
-    dot_prod = normalized_dot_product(
-        current_grad,
-        previous_grad,
-        stds,
-        epsilon,
-    )
 
     # Adjust learning rate to keep dot product approximately `ideal_covariance`:
     lr = lr * safe_exp(sensitivity * dot_prod)

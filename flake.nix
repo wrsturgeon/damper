@@ -84,7 +84,8 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        pypkgs = pkgs.python311Packages;
+	python-version = "312";
+        pypkgs = pkgs."python${python-version}Packages";
         python-with = ps: "${pypkgs.python.withPackages (lookup-pkg-sets ps pkgs)}/bin/python";
       in
       {
