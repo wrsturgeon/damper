@@ -84,6 +84,7 @@ def normalized_dot_product(
     standard_deviations: Float64[Array, "*batch"],
     epsilon: Float32[Array, ""],
 ) -> Float64[Array, "*batch"]:
+    # TODO: variance instead of dividing by std twice
     a = normalize(a, standard_deviations, epsilon)
     b = normalize(b, standard_deviations, epsilon)
     return a * b  # no sum: treat each entry independently
@@ -97,6 +98,7 @@ def update_tensor(
     lr: Float64[Array, "*batch"],
     stds: Float64[Array, "*batch"],
     sensitivity: Float32[Array, ""],
+    std_update: Float32[Array, ""],
     epsilon: Float32[Array, ""],
 ) -> Tuple[
     Float64[Array, "*batch"],
@@ -122,7 +124,7 @@ def update_tensor(
     # current_grad = jnp.where(sigma < 3, current_grad, 0)
 
     # Update standard deviation (now that we've used the previous one for outliers):
-    stds = stds - 0.2 * dLds
+    stds = stds - std_update * dLds
 
     # Adjust learning rate to keep dot product approximately `ideal_covariance`:
     lr = lr * safe_exp(sensitivity * dot_prod)
@@ -148,6 +150,7 @@ def update(
     lr: PyTree[Float64[Array, "..."]],
     stds: PyTree[Float64[Array, "..."]],
     sensitivity: Float32[Array, ""],
+    std_update: Float32[Array, ""],
     epsilon: Float32[Array, ""],
 ) -> Tuple[
     PyTree[Float64[Array, "..."]],
@@ -161,6 +164,7 @@ def update(
             lambda *args: update_tensor(
                 *args,
                 sensitivity,
+                std_update,
                 epsilon,
             ),
             parameters,
