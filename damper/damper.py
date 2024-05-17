@@ -97,6 +97,7 @@ def update_tensor(
     previous_grad: Float[Array, "*batch"],
     lr: Float[Array, "*batch"],
     stds: Float[Array, "*batch"],
+    ideal_dot_prod: Float[Array, ""],
     sensitivity: Float[Array, ""],
     std_update: Float[Array, ""],
     epsilon: Float[Array, ""],
@@ -128,7 +129,8 @@ def update_tensor(
 
     # Adjust learning rate to keep dot product approximately `ideal_covariance`:
     dot_prod = jnp.minimum(1, dot_prod)
-    exponent = sensitivity * dot_prod
+    error = dot_prod - ideal_dot_prod
+    exponent = sensitivity * error
     growth = safe_exp(exponent)
     lr = lr * growth
     # NOTE: Why exponentiate above?
@@ -152,6 +154,7 @@ def update(
     previous_grad: PyTree[Float[Array, "..."]],
     lr: PyTree[Float[Array, "..."]],
     stds: PyTree[Float[Array, "..."]],
+    ideal_dot_prod: Float[Array, ""],
     sensitivity: Float[Array, ""],
     std_update: Float[Array, ""],
     epsilon: Float[Array, ""],
