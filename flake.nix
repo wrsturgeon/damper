@@ -86,6 +86,7 @@
           inherit pname version src;
           pyproject = true;
           build-system = with pypkgs; [ setuptools ];
+          dependencies = default-pkgs pkgs pypkgs;
         };
     }
     // flake-utils.lib.eachDefaultSystem (
