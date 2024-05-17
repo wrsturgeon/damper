@@ -26,7 +26,6 @@
     }:
     let
       pname = "damper";
-      pyname = "damper";
       version = "0.0.1";
       src = ./.;
       jax =
