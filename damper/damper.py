@@ -99,8 +99,6 @@ def update_tensor(
     stds: Float[Array, "*batch"],
     sensitivity: Float[Array, ""],
     std_update: Float[Array, ""],
-    max_growth: Float[Array, ""],
-    max_lr: Float[Array, ""],
     epsilon: Float[Array, ""],
 ) -> Tuple[
     Float[Array, "*batch"],
@@ -129,11 +127,10 @@ def update_tensor(
     stds = stds - std_update * dLds
 
     # Adjust learning rate to keep dot product approximately `ideal_covariance`:
+    dot_prod = jnp.minimum(1, dot_prod)
     exponent = sensitivity * dot_prod
     growth = safe_exp(exponent)
-    growth = jnp.minimum(growth, max_growth)
     lr = lr * growth
-    lr = jnp.minimum(lr, max_lr)
     # NOTE: Why exponentiate above?
     # If we have a normal distribution of dot products (as we'd expect),
     # then we want the learning rate to stay constant.
