@@ -1,0 +1,3 @@
+[project]
+name = "damper"
+authors = [{name="Will Sturgeon", email="willstrgn@gmail.com"}]

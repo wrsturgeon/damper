@@ -73,14 +73,19 @@
     {
       lib.with-pkgs =
         pkgs: pypkgs:
-        pkgs.stdenv.mkDerivation {
+        # pkgs.stdenv.mkDerivation {
+        #   inherit pname version src;
+        #   propagatedBuildInputs = lookup-pkg-sets [ default-pkgs ] pkgs pypkgs;
+        #   buildPhase = ":";
+        #   installPhase = ''
+        #     mkdir -p $out/${pypkgs.python.sitePackages}
+        #     mv ./${pyname} $out/${pypkgs.python.sitePackages}/${pyname}
+        #   '';
+        # };
+        pypkgs.buildPythonPackage {
           inherit pname version src;
-          propagatedBuildInputs = lookup-pkg-sets [ default-pkgs ] pkgs pypkgs;
-          buildPhase = ":";
-          installPhase = ''
-            mkdir -p $out/${pypkgs.python.sitePackages}
-            mv ./${pyname} $out/${pypkgs.python.sitePackages}/${pyname}
-          '';
+          pyproject = true;
+          build-system = with pypkgs; [ setuptools ];
         };
     }
     // flake-utils.lib.eachDefaultSystem (
@@ -147,6 +152,7 @@
             ] pkgs pypkgs
           );
         };
+        packages.default = self.lib.with-pkgs pkgs pypkgs;
       }
     );
 }
