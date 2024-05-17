@@ -154,8 +154,6 @@ def update(
     stds: PyTree[Float[Array, "..."]],
     sensitivity: Float[Array, ""],
     std_update: Float[Array, ""],
-    max_growth: Float[Array, ""],
-    max_lr: Float[Array, ""],
     epsilon: Float[Array, ""],
 ) -> Tuple[
     PyTree[Float[Array, "..."]],
@@ -170,8 +168,6 @@ def update(
                 *args,
                 sensitivity,
                 std_update,
-                max_growth,
-                max_lr,
                 epsilon,
             ),
             parameters,
