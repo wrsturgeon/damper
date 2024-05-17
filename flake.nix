@@ -29,6 +29,16 @@
       pyname = "damper";
       version = "0.0.1";
       src = ./.;
+      jax =
+        p: py:
+        py.jax.overridePythonAttrs (
+          old:
+          old
+          // {
+            doCheck = false;
+            propagatedBuildInputs = old.propagatedBuildInputs ++ [ py.jaxlib-bin ];
+          }
+        );
       default-pkgs =
         p: py:
         with py;
@@ -36,17 +46,10 @@
           beartype
           jaxtyping
         ]
-        ++ [
-          (check-and-compile.lib.with-pkgs p py)
-          (jax.overridePythonAttrs (
-            old:
-            old
-            // {
-              doCheck = false;
-              propagatedBuildInputs = old.propagatedBuildInputs ++ [ py.jaxlib-bin ];
-            }
-          ))
-        ];
+        ++ (builtins.map (f: f p py) [
+          check-and-compile.lib.with-pkgs
+          jax
+        ]);
       check-pkgs =
         p: py: with py; [
           hypothesis
@@ -83,7 +86,10 @@
     // flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowBroken = true;
+        };
         python-version = "312";
         pypkgs = pkgs."python${python-version}Packages";
         python-with = ps: "${pypkgs.python.withPackages (lookup-pkg-sets ps pkgs)}/bin/python";
