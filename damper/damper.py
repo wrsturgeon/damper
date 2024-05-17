@@ -169,6 +169,7 @@ def update(
         pytree_to_transpose=tree.map(
             lambda *args: update_tensor(
                 *args,
+                ideal_dot_prod,
                 sensitivity,
                 std_update,
                 epsilon,
