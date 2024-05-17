@@ -3,15 +3,15 @@ from damper.util import safe_exp
 from beartype.typing import Tuple
 from check_and_compile import check_and_compile
 from jax import debug, lax, numpy as jnp, tree
-from jaxtyping import Array, Float32, Float64, PyTree
+from jaxtyping import Array, Float, PyTree
 
 
 @check_and_compile()
 def standard_deviation_loss(
-    standard_deviations: Float64[Array, "*batch"],
-    xs: Float64[Array, "*batch"],
-    epsilon: Float32[Array, ""],
-) -> Float64[Array, ""]:
+    standard_deviations: Float[Array, "*batch"],
+    xs: Float[Array, "*batch"],
+    epsilon: Float[Array, ""],
+) -> Float[Array, ""]:
     """
     Loss that, over time, precisely computes standard deviation.
     Assumes a mean of zero.
@@ -25,10 +25,10 @@ def standard_deviation_loss(
 
 @check_and_compile()
 def standard_deviation_grad_exact(
-    standard_deviations: Float64[Array, "*batch"],
-    xs: Float64[Array, "*batch"],
-    epsilon: Float32[Array, ""],
-) -> Float64[Array, "*batch"]:
+    standard_deviations: Float[Array, "*batch"],
+    xs: Float[Array, "*batch"],
+    epsilon: Float[Array, ""],
+) -> Float[Array, "*batch"]:
     """
     Directly compute the gradient of the above function in closed form.
     """
@@ -49,10 +49,10 @@ def standard_deviation_grad_exact(
 
 @check_and_compile()
 def standard_deviation_grad_approx(
-    standard_deviations: Float64[Array, "*batch"],
-    xs: Float64[Array, "*batch"],
-    epsilon: Float32[Array, ""],
-) -> Float64[Array, "*batch"]:
+    standard_deviations: Float[Array, "*batch"],
+    xs: Float[Array, "*batch"],
+    epsilon: Float[Array, ""],
+) -> Float[Array, "*batch"]:
     """
     Directly compute the gradient of the above function in closed form.
     """
@@ -70,20 +70,20 @@ def standard_deviation_grad_approx(
 
 @check_and_compile()
 def normalize(
-    xs: Float64[Array, "*batch"],
-    standard_deviations: Float64[Array, "*batch"],
-    epsilon: Float32[Array, ""],
-) -> Float64[Array, "*batch"]:
+    xs: Float[Array, "*batch"],
+    standard_deviations: Float[Array, "*batch"],
+    epsilon: Float[Array, ""],
+) -> Float[Array, "*batch"]:
     return xs / (epsilon + standard_deviations)
 
 
 @check_and_compile()
 def normalized_dot_product(
-    a: Float64[Array, "*batch"],
-    b: Float64[Array, "*batch"],
-    standard_deviations: Float64[Array, "*batch"],
-    epsilon: Float32[Array, ""],
-) -> Float64[Array, "*batch"]:
+    a: Float[Array, "*batch"],
+    b: Float[Array, "*batch"],
+    standard_deviations: Float[Array, "*batch"],
+    epsilon: Float[Array, ""],
+) -> Float[Array, "*batch"]:
     # TODO: variance instead of dividing by std twice
     a = normalize(a, standard_deviations, epsilon)
     b = normalize(b, standard_deviations, epsilon)
@@ -92,18 +92,18 @@ def normalized_dot_product(
 
 @check_and_compile()
 def update_tensor(
-    parameters: Float64[Array, "*batch"],
-    current_grad: Float64[Array, "*batch"],
-    previous_grad: Float64[Array, "*batch"],
-    lr: Float64[Array, "*batch"],
-    stds: Float64[Array, "*batch"],
-    sensitivity: Float32[Array, ""],
-    std_update: Float32[Array, ""],
-    epsilon: Float32[Array, ""],
+    parameters: Float[Array, "*batch"],
+    current_grad: Float[Array, "*batch"],
+    previous_grad: Float[Array, "*batch"],
+    lr: Float[Array, "*batch"],
+    stds: Float[Array, "*batch"],
+    sensitivity: Float[Array, ""],
+    std_update: Float[Array, ""],
+    epsilon: Float[Array, ""],
 ) -> Tuple[
-    Float64[Array, "*batch"],
-    Float64[Array, "*batch"],
-    Float64[Array, "*batch"],
+    Float[Array, "*batch"],
+    Float[Array, "*batch"],
+    Float[Array, "*batch"],
 ]:
     # If the dot product of this gradient and the last is negative,
     # that means we're oscillating, and the more negative, the worse:
@@ -144,18 +144,18 @@ def update_tensor(
 
 @check_and_compile()
 def update(
-    parameters: PyTree[Float64[Array, "..."]],
-    current_grad: PyTree[Float64[Array, "..."]],
-    previous_grad: PyTree[Float64[Array, "..."]],
-    lr: PyTree[Float64[Array, "..."]],
-    stds: PyTree[Float64[Array, "..."]],
-    sensitivity: Float32[Array, ""],
-    std_update: Float32[Array, ""],
-    epsilon: Float32[Array, ""],
+    parameters: PyTree[Float[Array, "..."]],
+    current_grad: PyTree[Float[Array, "..."]],
+    previous_grad: PyTree[Float[Array, "..."]],
+    lr: PyTree[Float[Array, "..."]],
+    stds: PyTree[Float[Array, "..."]],
+    sensitivity: Float[Array, ""],
+    std_update: Float[Array, ""],
+    epsilon: Float[Array, ""],
 ) -> Tuple[
-    PyTree[Float64[Array, "..."]],
-    PyTree[Float64[Array, "..."]],
-    PyTree[Float64[Array, "..."]],
+    PyTree[Float[Array, "..."]],
+    PyTree[Float[Array, "..."]],
+    PyTree[Float[Array, "..."]],
 ]:
     return tree.transpose(
         outer_treedef=tree.structure(parameters),
