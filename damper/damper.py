@@ -93,6 +93,7 @@ def update_tensor(
     Float[Array, "*batch"],
     Float[Array, "*batch"],
     Float[Array, "*batch"],
+    Float[Array, "*batch"],
 ]:
     # Compute root-mean-squared error (but don't update it yet):
     # dLds = grad(rms_loss)(rms, current_grad, epsilon)
@@ -100,7 +101,7 @@ def update_tensor(
 
     # Normalize gradients by their root-mean-squared:
     current_grad = normalize(current_grad, rms, epsilon)
-    previous_grad = normalize(previous_grad, rms, epsilon)
+    # PREVIOUS GRADIENT IS ALREADY NORMALIZED: DO NOT DIVIDE TWICE
 
     # Update root-mean-squared (now that we've used the previous one for outliers):
     rms = rms - rms_update * dLds
@@ -126,7 +127,7 @@ def update_tensor(
     lr = jnp.maximum(lr, epsilon)
 
     # Update parameters and return:
-    return weight_decay * parameters - lr * current_grad, lr, rms
+    return weight_decay * parameters - lr * current_grad, current_grad, lr, rms
 
 
 @check_and_compile()
@@ -145,10 +146,11 @@ def update(
     PyTree[Float[Array, "..."]],
     PyTree[Float[Array, "..."]],
     PyTree[Float[Array, "..."]],
+    PyTree[Float[Array, "..."]],
 ]:
     return tree.transpose(
         outer_treedef=tree.structure(parameters),
-        inner_treedef=tree.structure(("*", "*", "*")),
+        inner_treedef=tree.structure(("*", "*", "*", "*")),
         pytree_to_transpose=tree.map(
             lambda *args: update_tensor(
                 *args,
